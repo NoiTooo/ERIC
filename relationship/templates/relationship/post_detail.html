@@ -5,7 +5,7 @@
   <title>Title</title>
 </head>
 <body>
-<p>投稿者：{{ objects.author }}</p>
+<p>投稿者：{{ objects.author }} <a href="{% url 'relationship:user_profile' objects.author.pk %}">プロフィール</a></p>
 
 {% if owner != objects.author.account_name %}
   <form method="post">

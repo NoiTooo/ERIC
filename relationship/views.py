@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import generic
 
-from .models import Follow, Post, Comment
+from .models import Follow, Post, Comment, Intimate
 from .forms import CommentForm
 
 User = get_user_model()
@@ -64,10 +64,8 @@ class FollowerList(LoginRequiredMixin, generic.ListView):
         # フォロワーユーザー数をカウント
         ctx['my_followers_count'] = Follow.objects.filter(follow_user=request_user).count()
         # フォローリスト(qs)を返す
-        follow_lst = []
-        a = Follow.objects.filter(user=request_user)
-        for i in a:
-            follow_lst.append(i.follow_user)
+        qs = Follow.objects.filter(user=request_user)
+        follow_lst = [i for i in qs]
         ctx['follower_lst'] = follow_lst
         return ctx
 
@@ -159,8 +157,6 @@ class PostDetail(LoginRequiredMixin, generic.DetailView):
                 if form.is_valid():
                     commit.save()
                     return redirect('relationship:post_detail', self.kwargs["pk"])
-                else:
-                    return redirect('relationship:post_detail', self.kwargs["pk"])
                 return self.get(self, *args, **kwargs)
         return self.get(self, *args, **kwargs)
 
@@ -195,3 +191,39 @@ class PostCreate(LoginRequiredMixin, generic.CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
+
+
+class UserProfile(LoginRequiredMixin, generic.DetailView):
+    model = User
+    template_name = 'relationship/user_profile.html'
+    context_object_name = 'objects'
+
+    def get_context_data(self, *args, **kwargs):
+        ctx = super().get_context_data()
+        # あとでregister.user_detailに移す
+        ctx['receive_list'] = Intimate.objects.filter(receiver=self.kwargs.get('pk'))
+        return ctx
+
+    def post(self, *args, **kwargs):
+        if self.request.method == 'POST':
+            """ 承認リクエスト """
+            get_sender = self.request.user
+            get_receiver = self.kwargs.get('pk')
+            sender_ins = User.objects.get(email=get_sender)
+            receiver_ins = User.objects.get(pk=get_receiver)
+
+            # リクエスト済みユーザーなら保存しない
+            sender_qs = Intimate.objects.filter(sender=sender_ins)
+            for i in sender_qs:
+                if i.sender == get_sender and receiver_ins.email == str(i.receiver):
+                    return self.get(self, *args, **kwargs)
+
+            # リクエストされていたら保存しない
+            receiver_qs = Intimate.objects.filter(sender=receiver_ins)
+            for u in receiver_qs:
+                if u.sender.email == receiver_ins.email and u.receiver == get_sender:
+                    return self.get(self, *args, **kwargs)
+
+            intimate_ins = Intimate(sender=sender_ins, receiver=receiver_ins, request=True, approval=False)
+            intimate_ins.save()
+            return self.get(self, *args, **kwargs)

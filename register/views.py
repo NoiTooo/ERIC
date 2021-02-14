@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -15,11 +17,11 @@ from django.urls import reverse_lazy
 from django.views import generic
 
 from project.settings import DEFAULT_FROM_EMAIL
+from relationship.models import Intimate
 from .forms import (
     LoginForm, UserCreateForm, UserUpdateForm, MyPasswordChangeForm,
     MyPasswordResetForm, MySetPasswordForm, EmailChangeForm
 )
-
 
 User = get_user_model()
 
@@ -83,7 +85,7 @@ class UserCreateDone(generic.TemplateView):
 class UserCreateComplete(generic.TemplateView):
     """メール内URLアクセス後のユーザー本登録"""
     template_name = 'register/user_create_complete.html'
-    timeout_seconds = getattr(settings, 'ACTIVATION_TIMEOUT_SECONDS', 60*60*24)  # デフォルトでは1日以内
+    timeout_seconds = getattr(settings, 'ACTIVATION_TIMEOUT_SECONDS', 60 * 60 * 24)  # デフォルトでは1日以内
 
     def get(self, request, **kwargs):
         """tokenが正しければ本登録."""
@@ -128,6 +130,74 @@ class UserDetail(OnlyYouMixin, generic.DetailView):
     """ユーザーの詳細ページ"""
     model = User
     template_name = 'register/user_detail.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data()
+        request_user = self.request.user
+        """ あなたの承認待ちユーザーリスト """
+        ctx['approval_pending_list'] = Intimate.objects.filter(receiver=request_user,
+                                                               request=True, approval=False).exclude(reject=True)
+
+        """ 相手の承認待ちユーザーリスト """
+        ctx['request_list'] = Intimate.objects.filter(sender=request_user,
+                                                      request=True, approval=False)
+
+        """ 親しい友達リスト """
+        intimate_qs1 = Intimate.objects.filter(sender=request_user, request=True, approval=True)
+        intimate_qs2 = Intimate.objects.filter(receiver=request_user, request=True, approval=True)
+        intimate_dic = {}
+        for user in intimate_qs1:
+            intimate_dic[(str(user.receiver.account_name))] = user.date
+        for user in intimate_qs2:
+            intimate_dic[str(user.sender.account_name)] = user.date
+        # 繋がった日付でソート
+        intimate_dic_sorted = sorted(intimate_dic.items(), key=lambda x: x[1])
+        ctx['intimate_dic_sorted'] = intimate_dic_sorted
+
+        """ 拒否したユーザーリスト """
+        ctx['reject_lst'] = Intimate.objects.filter(receiver=request_user, reject=True)
+
+        return ctx
+
+    def post(self, *args, **kwargs):
+        if self.request.method == 'POST':
+            request_user = self.request.user
+            now = datetime.now()
+
+            """ リクエストを承認する """
+            if 'approval' in self.request.POST:
+                sender_user = self.request.POST['approval']
+                # sender と recieverを取得
+                request_user_ins = User.objects.get(email=request_user)
+                sender_user_ins = User.objects.get(account_name=sender_user)
+                # それぞれUserインスタンスを取得し、approval：True、date：承認した時間を保存する
+                intimate_ins = Intimate.objects.get(sender=sender_user_ins, receiver=request_user_ins)
+                intimate_ins.approval = True
+                intimate_ins.reject = False
+                intimate_ins.date = now
+                intimate_ins.save()
+
+            """ リクエストを拒否する(拒否通知はしない) """
+            if 'reject' in self.request.POST:
+                reject_user = self.request.POST['reject']
+                # それぞれUserインスタンスを取得し、reject：Trueで保存する
+                request_user_ins = User.objects.get(email=request_user)
+                reject_user_ins = User.objects.get(account_name=reject_user)
+                intimate_ins = Intimate.objects.get(sender=reject_user_ins, receiver=request_user_ins)
+                intimate_ins.reject = True
+                intimate_ins.save()
+                return self.get(self, *args, **kwargs)
+
+            """ リクエストを取り消す """
+            if 'cancel' in self.request.POST:
+                cancel_user = self.request.POST['cancel']
+                # それぞれUserインスタンスを取得し、reject：Trueで保存する
+                request_user_ins = User.objects.get(email=request_user)
+                cancel_user_ins = User.objects.get(account_name=cancel_user)
+                intimate_ins = Intimate.objects.get(sender=request_user_ins, receiver=cancel_user_ins)
+                intimate_ins.request = False
+                intimate_ins.save()
+            return self.get(self, *args, **kwargs)
 
 
 class UserUpdate(OnlyYouMixin, generic.UpdateView):
@@ -212,7 +282,7 @@ class EmailChangeDone(LoginRequiredMixin, generic.TemplateView):
 class EmailChangeComplete(LoginRequiredMixin, generic.TemplateView):
     """リンクを踏んだ後に呼ばれるメアド変更ビュー"""
     template_name = 'register/email_change_complete.html'
-    timeout_seconds = getattr(settings, 'ACTIVATION_TIMEOUT_SECONDS', 60*60*24)  # デフォルトでは1日以内
+    timeout_seconds = getattr(settings, 'ACTIVATION_TIMEOUT_SECONDS', 60 * 60 * 24)  # デフォルトでは1日以内
 
     def get(self, request, **kwargs):
         token = kwargs.get('token')

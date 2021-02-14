@@ -40,6 +40,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=150, blank=True)
     account_name = models.CharField(_('account name'), unique=True, blank=True, null=True, max_length=30)
+    image = models.ImageField(default='default.png', upload_to='media/profile_pics')
+    job = models.CharField(max_length=30, null=True, blank=True,)
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
     is_staff = models.BooleanField(
         _('staff status'),
@@ -55,7 +58,6 @@ class User(AbstractBaseUser, PermissionsMixin):
             'Unselect this instead of deleting accounts.'
         ),
     )
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
     objects = CustomUserManager()
 
