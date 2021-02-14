@@ -200,8 +200,18 @@ class UserProfile(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, *args, **kwargs):
         ctx = super().get_context_data()
-        # あとでregister.user_detailに移す
-        ctx['receive_list'] = Intimate.objects.filter(receiver=self.kwargs.get('pk'))
+        """ リクエスト済みユーザーの判定 """
+        # 本人と閲覧ユーザーのUser情報を取得
+        user = User.objects.get(email=self.request.user)
+        request_user = User.objects.get(pk=self.kwargs.get('pk'))
+        # 既にリクエストしているか判定してTemplateに返す
+        if Intimate.objects.filter(sender=user, receiver=request_user):
+            ctx['request_done'] = True
+        else:
+            ctx['request_done'] = False
+        # 自分自身かを判定
+        if user.email == request_user.email:
+            ctx['myself'] = True
         return ctx
 
     def post(self, *args, **kwargs):
@@ -226,4 +236,5 @@ class UserProfile(LoginRequiredMixin, generic.DetailView):
 
             intimate_ins = Intimate(sender=sender_ins, receiver=receiver_ins, request=True, approval=False)
             intimate_ins.save()
-            return self.get(self, *args, **kwargs)
+            return redirect('relationship:user_profile', get_receiver)
+        return self.get(self, *args, **kwargs)

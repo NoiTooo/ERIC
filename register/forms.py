@@ -58,6 +58,12 @@ class UserCreateForm(UserCreationForm):
         self.fields['password2'].widget.attrs['placeholder'] = '********'
         self.fields['password2'].label = '確認用パスワード'
 
+    def clean_account_name(self):
+        account_name = self.cleaned_data['account_name']
+        if account_name is None:
+            raise forms.ValidationError("必須項目(登録後も変更可能です)")
+        return account_name
+
     # 仮登録だけしていた場合、前のデータを消す
     def clean_email(self):
         email = self.cleaned_data['email']

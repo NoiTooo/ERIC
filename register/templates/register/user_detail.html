@@ -2,17 +2,10 @@
 {% block content %}
 <table class="table">
     <tbody>
-        {% if user.account_name %}
         <tr>
             <th>ユーザー名</th>
             <td>{{ user.account_name }}</td>
         </tr>
-        {% else %}
-        <tr>
-            <th>ユーザー名</th>
-            <td>登録されていません</td>
-        </tr>
-        {% endif %}
         <tr>
             <th>お名前</th>
             <td>{{ user.last_name }}　{{ user.first_name }}</td>
@@ -20,6 +13,10 @@
         <tr>
             <th>登録日</th>
             <td>{{ user.date_joined|date:"Y年m月d日" }}</td>
+        </tr>
+        <tr>
+            <th>最終ログイン</th>
+            <td>{{ user.last_login|date:"Y年m月d日" }}</td>
         </tr>
         <tr>
             <th>メールアドレス</th>

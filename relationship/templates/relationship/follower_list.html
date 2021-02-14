@@ -8,7 +8,7 @@
 フォロワー数：{{ my_followers_count }}
 <hr>
 {% for follower in my_followers %}
-<p>{{ follower.user }}</p>
+<p>{{ follower.user.account_name }}</p>
 
   {% if follower.user in follower_lst%}
     FOLLOW NOW
