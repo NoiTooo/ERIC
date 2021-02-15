@@ -1,4 +1,9 @@
+import hashlib
+import os
+from datetime import datetime
+
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin, UserManager
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -34,13 +39,31 @@ class CustomUserManager(UserManager):
         return self._create_user(email, password, **extra_fields)
 
 
+def user_img_upload_to(instance, filename):
+    """ 画像名をハッシュを持ち値手リネームして保存する """
+    current_time = datetime.now()
+    pre_hash_name = f'{instance.account_name}{filename}{current_time}'
+    extension = str(filename).split('.')[-1]
+    hs_filename = f'{hashlib.md5(pre_hash_name.encode()).hexdigest()}.{extension}'
+    saved_path = 'media/profile_pics/'
+    return f'{saved_path}{hs_filename}'
+
+
+def validate_is_picture(value):
+    """ 画像拡張子の指定 """
+    ext = os.path.splitext(value.name)[1]
+
+    if not ext.lower() in ['.jpg', '.png', '.jpeg']:
+        raise ValidationError('「.jpg」・「.png」。「jpeg」のみ可能です」')
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     """カスタムユーザーモデル:emailアドレスをユーザー名として使う"""
     email = models.EmailField(_('email address'), unique=True)
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=150, blank=True)
     account_name = models.CharField(_('account name'), unique=True, blank=True, null=True, max_length=30)
-    image = models.ImageField(default='default.png', upload_to='media/profile_pics')
+    image = models.ImageField(default='default.png', upload_to=user_img_upload_to, validators=[validate_is_picture])
     job = models.CharField(max_length=30, null=True, blank=True,)
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
