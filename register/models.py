@@ -10,6 +10,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 
+from PIL import Image
+
 
 class CustomUserManager(UserManager):
     """ユーザーマネージャー"""
@@ -40,17 +42,17 @@ class CustomUserManager(UserManager):
 
 
 def user_img_upload_to(instance, filename):
-    """ 画像名をハッシュを持ち値手リネームして保存する """
+    """ 画像名をハッシュを用いてリネームし保存する """
     current_time = datetime.now()
     pre_hash_name = f'{instance.account_name}{filename}{current_time}'
     extension = str(filename).split('.')[-1]
-    hs_filename = f'{hashlib.md5(pre_hash_name.encode()).hexdigest()}.{extension}'
+    hs_filename = f'{instance.pk}_{hashlib.md5(pre_hash_name.encode()).hexdigest()}.{extension}'
     saved_path = 'media/profile_pics/'
     return f'{saved_path}{hs_filename}'
 
 
 def validate_is_picture(value):
-    """ 画像拡張子の指定 """
+    """ 画像の拡張子を指定するバリデーション """
     ext = os.path.splitext(value.name)[1]
 
     if not ext.lower() in ['.jpg', '.png', '.jpeg']:
@@ -105,6 +107,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    def save(self, *args, **kwargs):
+        """ 画像のリサイズ """
+        super().save()
+        img = Image.open(self.image.path)
+        if img.height > 200 or img.width > 200:
+            output_size = (200, 200)
+            img.thumbnail(output_size)
+            img.save(self.image.path)
 
     @property
     def username(self):
