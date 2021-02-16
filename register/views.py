@@ -115,6 +115,10 @@ class UserCreateComplete(generic.TemplateView):
                     user.is_active = True
                     user.save()
                     return super().get(request, **kwargs)
+            finally:
+                # 画像アップロード用インスタンスを自動生成しとく
+                upload_user_ins = UploadImage(user=user)
+                upload_user_ins.save()
 
         return HttpResponseBadRequest()
 
