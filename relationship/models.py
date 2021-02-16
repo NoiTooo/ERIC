@@ -1,6 +1,6 @@
-from django.utils import timezone
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -16,6 +16,10 @@ class Post(models.Model):
     def __str__(self):
         return self.content[:5]
 
+    class Meta:
+        verbose_name = "post"
+        verbose_name_plural = "UserPosts"
+
 
 class Follow(models.Model):
     """ フォロー・フォロワーの管理 """
@@ -25,6 +29,10 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'FROM：{str(self.user.account_name)}――＞TO：{str(self.follow_user.account_name)}'
+
+    class Meta:
+        verbose_name = "follow"
+        verbose_name_plural = "UserFollow"
 
 
 class Comment(models.Model):
@@ -36,6 +44,10 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'{str(self.author.account_name)}：{str(self.date_posted)}'
+
+    class Meta:
+        verbose_name = "comment"
+        verbose_name_plural = "PostComment"
 
 
 class Intimate(models.Model):
@@ -50,3 +62,7 @@ class Intimate(models.Model):
     def __str__(self):
         return f'{str(self.sender.account_name)}――{str(self.receiver.account_name)}' \
                f'｜request―{self.request}｜approval―{self.approval}'
+
+    class Meta:
+        verbose_name = "intimate"
+        verbose_name_plural = "Intimate"

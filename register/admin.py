@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.translation import ugettext_lazy as _
-from .models import User
+from .models import User, UploadImage
 
 
 class MyUserChangeForm(UserChangeForm):
@@ -39,12 +39,13 @@ class MyUserAdmin(UserAdmin, admin.ModelAdmin):
     ordering = ('email',)
 
 
-class FollowAdmin(admin.ModelAdmin):
+class UploadImageAdmin(admin.ModelAdmin):
     fieldsets = (
-        (None, {'fields': ('user', 'follow_user')}),
+        (None, {'fields': ('user', 'upload_img')}),
     )
-    list_display = ('user', 'follow_user', 'date')
-    ordering = ('-date',)
+    list_display = ('user', 'upload_img')
+    ordering = ('-user',)
 
 
 admin.site.register(User, MyUserAdmin)
+admin.site.register(UploadImage, UploadImageAdmin)

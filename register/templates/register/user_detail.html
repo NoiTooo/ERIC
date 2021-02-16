@@ -8,6 +8,7 @@
 {% block content %}
 <table class="table">
     <img src="{{ user.image.url }}" alt="{{ user.account_name }}">
+    <p><a href="{% url 'register:upload_image' upload_user_pk %}">変更する</a></p>
     <h2>{{ user.account_name }}</h2>
     <tbody>
         <tr>

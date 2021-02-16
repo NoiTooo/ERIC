@@ -4,6 +4,7 @@ from django.contrib.auth.forms import (
     PasswordResetForm, SetPasswordForm
 )
 from django.contrib.auth import get_user_model
+from .models import UploadImage
 
 User = get_user_model()
 
@@ -82,6 +83,14 @@ class UserUpdateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
+
+
+class UploadImageForm(forms.ModelForm):
+    """画像アップロードフォーム"""
+
+    class Meta:
+        model = UploadImage
+        fields = ('upload_img',)
 
 
 class MyPasswordChangeForm(PasswordChangeForm):

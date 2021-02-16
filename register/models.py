@@ -42,7 +42,7 @@ class CustomUserManager(UserManager):
 
 
 def user_img_upload_to(instance, filename):
-    """ 画像名をハッシュを用いてリネームし保存する """
+    """ User:画像名をハッシュを用いてリネームし保存する """
     current_time = datetime.now()
     pre_hash_name = f'{instance.account_name}{filename}{current_time}'
     extension = str(filename).split('.')[-1]
@@ -120,3 +120,35 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def username(self):
         return self.email
+
+
+def user_img_upload_to(instance, filename):
+    """ UploadImage:画像名をハッシュを用いてリネームし保存する """
+    current_time = datetime.now()
+    pre_hash_name = f'{filename}{current_time}'
+    extension = str(filename).split('.')[-1]
+    hs_filename = f'{instance.pk}_{hashlib.md5(pre_hash_name.encode()).hexdigest()}.{extension}'
+    saved_path = 'media/profile_pics/'
+    return f'{saved_path}{hs_filename}'
+
+
+class UploadImage(models.Model):
+    """ アップロード画像 """
+    user = models.OneToOneField(User, related_name='upload', on_delete=models.CASCADE)
+    upload_img = models.ImageField(default='default.jpg', upload_to=user_img_upload_to, validators=[validate_is_picture])
+
+    class Meta:
+        verbose_name = "profile_image_upload"
+        verbose_name_plural = "ProfileImageUpload"
+
+    def save(self, *args, **kwargs):
+        """ 画像のリサイズ """
+        super().save()
+        img = Image.open(self.upload_img.path)
+        if img.height > 150 or img.width > 150:
+            output_size = (200, 150)
+            img.thumbnail(output_size)
+            img.save(self.upload_img.path)
+
+    def __str__(self):
+        return str(self.user)
