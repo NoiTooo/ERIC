@@ -17,7 +17,7 @@ class MyUserCreationForm(UserCreationForm):
         fields = ('email', 'account_name')
 
 
-class MyUserAdmin(UserAdmin):
+class MyUserAdmin(UserAdmin, admin.ModelAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password', 'account_name', 'job', 'image')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name')}),

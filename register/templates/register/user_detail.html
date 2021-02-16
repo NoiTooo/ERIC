@@ -1,11 +1,15 @@
 {% extends "register/base.html" %}
+{% load static %}
+
+{% block head %}
+{% endblock head %}
+
+
 {% block content %}
 <table class="table">
+    <img src="{{ user.image.url }}" alt="{{ user.account_name }}">
+    <h2>{{ user.account_name }}</h2>
     <tbody>
-        <tr>
-            <th>ユーザー名</th>
-            <td>{{ user.account_name }}</td>
-        </tr>
         <tr>
             <th>お名前</th>
             <td>{{ user.last_name }}　{{ user.first_name }}</td>
