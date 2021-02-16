@@ -6,9 +6,25 @@
 
 
 {% block content %}
+<style>
+  img{
+  	width:150px;
+  	height:150px;
+	  object-fit:cover;
+	  border-radius:50%;
+	  border: 2px solid black;
+  }
+</style>
 <table class="table">
     <img src="{{ user.image.url }}" alt="{{ user.account_name }}">
-    <p><a href="{% url 'register:upload_image' upload_user_pk %}">変更する</a></p>
+    <hr>
+    <a href="{% url 'register:upload_image' upload_user_pk %}"><button>変更する</button></a>
+    <form method="POST">
+      {% csrf_token %}
+      <button type="submit" name="delete">削除する</button>
+    </form>
+
+    <br><br>
     <h2>{{ user.account_name }}</h2>
     <tbody>
         <tr>

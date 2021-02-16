@@ -206,6 +206,13 @@ class UserDetail(OnlyYouMixin, generic.DetailView):
                 intimate_ins = Intimate.objects.get(sender=request_user_ins, receiver=cancel_user_ins)
                 intimate_ins.request = False
                 intimate_ins.save()
+
+            """ 画像を取り消す """
+            if 'delete' in self.request.POST:
+                user_ins = User.objects.get(pk=request_user.pk)
+                user_ins.image = 'media/profile_pics/default.jpg'
+                user_ins.save()
+
             return self.get(self, *args, **kwargs)
 
 

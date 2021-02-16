@@ -5,6 +5,15 @@
   <title>Title</title>
 </head>
 <body>
+<style>
+  img{
+  	width:150px;
+  	height:150px;
+	  object-fit:cover;
+	  border-radius:50%;
+	  border: 2px solid black;
+  }
+</style>
 {{ objects.user.account_name }}
 <img src="{{ post_img.url }}" alt="{{ user.account_name }}">
 <form method="post">

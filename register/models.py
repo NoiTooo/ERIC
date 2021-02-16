@@ -112,8 +112,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         """ 画像のリサイズ """
         super().save()
         img = Image.open(self.image.path)
-        if img.height > 150 or img.width > 150:
-            output_size = (200, 150)
+        if img.height > 200 or img.width > 200:
+            output_size = (200, 200)
             img.thumbnail(output_size)
             img.save(self.image.path)
 
@@ -145,8 +145,8 @@ class UploadImage(models.Model):
         """ 画像のリサイズ """
         super().save()
         img = Image.open(self.upload_img.path)
-        if img.height > 150 or img.width > 150:
-            output_size = (200, 150)
+        if img.height > 200 or img.width > 200:
+            output_size = (200, 200)
             img.thumbnail(output_size)
             img.save(self.upload_img.path)
 

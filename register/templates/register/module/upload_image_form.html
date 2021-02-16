@@ -5,6 +5,15 @@
   <title>UPLOAD IMAGE</title>
 </head>
 <body>
+<style>
+  img{
+  	width:150px;
+  	height:150px;
+	  object-fit:cover;
+	  border-radius:50%;
+	  border: 2px solid black;
+  }
+</style>
 <img src="{{ user.image.url }}" alt="{{ user.account_name }}">
 <p>現在の画像</p>
 
