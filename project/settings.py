@@ -27,7 +27,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
+    'django_summernote',
     'relationship.apps.RelationshipConfig',
+    'article.apps.ArticleConfig'
 ]
 
 MIDDLEWARE = [
@@ -131,3 +133,12 @@ EMAIL_TIMEOUT = 300
 
 # 追加　デフォルトメールアドレス
 DEFAULT_FROM_EMAIL = 'uvey.jp@gmail.com'
+
+# django-summernote
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+SUMMERNOTE_CONFIG = {
+    'summernote': {
+        'height': '1000',
+    },
+}

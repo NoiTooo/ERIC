@@ -6,7 +6,10 @@ from django.urls import path, include
 urlpatterns = [
     path('', include('relationship.urls')),
     path('register/', include('register.urls')),
+    path('article/', include('article.urls')),
+    path('summernote/', include('django_summernote.urls')),
     path('admin/', admin.site.urls),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
